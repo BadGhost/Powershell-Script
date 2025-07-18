@@ -1,5 +1,3 @@
-#Requires -RunAsAdministrator
-
 <#
 .SYNOPSIS
     Automates the creation of a Hyper-V virtual machine for Alpine Linux with Dynamic Memory.
@@ -55,6 +53,10 @@ Write-Host "Setting boot order to DVD Drive..."
 # Get the DVD drive object to set it as the first boot device
 $DvdDrive = Get-VMDvdDrive -VMName $VMName
 Set-VMFirmware -VMName $VMName -FirstBootDevice $DvdDrive
+
+Write-Host "Disabling automatic checkpoints for '$($VMName)'..."
+# Disable automatic checkpoints
+Set-VM -Name $VMName -AutomaticCheckpointsEnabled $false
 
 # --- 3. COMPLETION ---
 Write-Host -ForegroundColor Green "VM '$($VMName)' created successfully with Dynamic Memory!"
