@@ -2,14 +2,16 @@
 
 <#
 .SYNOPSIS
-    Automates the creation of a Hyper-V virtual machine for Alpine Linux.
+    Automates the creation of a Hyper-V virtual machine for Alpine Linux with Dynamic Memory.
 #>
 
 # --- 1. CONFIGURE YOUR VM VARIABLES HERE ---
 $VMName = "AlpineLinux-PS"
-$VHDPath = "C:\HyperV-VMs"      # Folder to store the virtual disk
-$ISOPath = "C:\ISOs\alpine-virt-3.20.0-x86_64.iso" # <-- CHANGE THIS to the full path of your Alpine ISO
-$Memory = 512MB                 # Startup memory
+$VHDPath = "C:\ProgramData\Microsoft\Windows\Virtual Hard Disks"
+$ISOPath = "C:\Users\ifirdaus\Downloads\alpine-standard-3.22.1-x86_64.iso"
+$StartupMemory = 512MB            # Startup memory for the VM
+$MinimumMemory = 512MB            # Minimum memory for Dynamic Memory
+$MaximumMemory = 2GB              # Maximum memory for Dynamic Memory
 $VHDSize = 10GB                 # Size of the virtual disk
 $SwitchName = "Default Switch"  # Name of the virtual switch to use
 
@@ -31,10 +33,14 @@ New-VHD -Path $FullVHDPath -SizeBytes $VHDSize -Fixed
 Write-Host "Creating Virtual Machine '$($VMName)'..."
 # Create the Generation 2 VM
 New-VM -Name $VMName `
-    -MemoryStartupBytes $Memory `
+    -MemoryStartupBytes $StartupMemory `
     -Generation 2 `
     -VHDPath $FullVHDPath `
     -SwitchName $SwitchName
+
+Write-Host "Enabling and configuring Dynamic Memory for '$($VMName)'..."
+# Enable Dynamic Memory and set the minimum and maximum values
+Set-VMMemory -VMName $VMName -DynamicMemoryEnabled $true -MinimumBytes $MinimumMemory -MaximumBytes $MaximumMemory -StartupBytes $StartupMemory
 
 Write-Host "Disabling Secure Boot for '$($VMName)'..."
 # Disable Secure Boot (required for Alpine Linux)
@@ -51,5 +57,5 @@ $DvdDrive = Get-VMDvdDrive -VMName $VMName
 Set-VMFirmware -VMName $VMName -FirstBootDevice $DvdDrive
 
 # --- 3. COMPLETION ---
-Write-Host -ForegroundColor Green "✅ VM '$($VMName)' created successfully!"
+Write-Host -ForegroundColor Green "VM '$($VMName)' created successfully with Dynamic Memory!"
 Write-Host "You can now start the VM in Hyper-V Manager and run the 'setup-alpine' command to install."
